@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "name": "client",
+      "path": "client"
+    },
+    {
+      "path": "cmd",
+      "name": "cmd"
+    },
+    {
+      "path": "lib",
+      "name": "lib"
+    }
+  ],
+  "settings": {
+    "cSpell.words": ["golog"]
+  }
+}

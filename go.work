@@ -1,0 +1,8 @@
+go 1.20
+
+use (
+    lib/go/common
+    lib/go/golog
+
+    cmd/api
+)
