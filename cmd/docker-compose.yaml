@@ -6,8 +6,9 @@ services:
     container_name: SqlServerDB
     ports:
       - 1433:1433
-    env_file:
-      - "./.env"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=yourStrong(!)Password
     volumes:
       - ./temp/mssqldata:/var/opt/mssql
 
