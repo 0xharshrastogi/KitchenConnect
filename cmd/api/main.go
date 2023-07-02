@@ -9,6 +9,7 @@ import (
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/config"
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/db"
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/handler"
+	"github.com/harshrastogiexe/KitchenConnect/cmd/api/utils/logger"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/common/repository"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
@@ -19,6 +20,7 @@ const CONNECTION_STRING_KEY string = "KitchenConnectDB"
 func main() {
 	fx.New(
 		fx.Provide(config.BuildAppSetting("appsetting.json")),
+		fx.Provide(logger.NewZapLogger),
 		fx.Provide(NewValidator),
 		fx.Provide(repository.NewUserRepository),
 		fx.Provide(handler.NewAuthHandler),

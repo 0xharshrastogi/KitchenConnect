@@ -9,18 +9,20 @@ import (
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/db/models"
 	"github.com/stroiman/go-automapper"
 	"go.uber.org/fx"
-	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 type AuthHandler struct {
 	validate *validator.Validate
 	user     interfaces.IUserRepository
+	logger   *zap.Logger
 }
 
-func NewAuthHandler(l fx.Lifecycle, v *validator.Validate, u interfaces.IUserRepository) *AuthHandler {
+func NewAuthHandler(l fx.Lifecycle, v *validator.Validate, u interfaces.IUserRepository, logger *zap.Logger) *AuthHandler {
 	return &AuthHandler{
 		validate: v,
 		user:     u,
+		logger:   logger,
 	}
 }
 
@@ -50,23 +52,33 @@ func (a *AuthHandler) RegisterHandler() fiber.Handler {
 	)
 
 	return func(c *fiber.Ctx) error {
-		var u UserInfo
+		var (
+			u  UserInfo
+			zf = make([]zap.Field, 0, 5)
+		)
+
 		if err := c.BodyParser(&u); err != nil {
+			zf = append(zf, zap.Error(err))
+			a.logger.Error("failed to parse json body", zf...)
 			return &fiber.Error{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 
 		if err := a.validate.Struct(&u); err != nil {
+			zf = append(zf, zap.Error(err))
+			a.logger.Error("validation failed for user", zf...)
 			return &fiber.Error{Code: http.StatusBadRequest, Message: err.Error()}
 		}
+
 		usr := &models.User{}
 		automapper.MapLoose(u, usr)
-		err := a.user.Save(usr)
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return &fiber.Error{Code: http.StatusNotFound, Message: err.Error()}
-			}
+		zf = append(zf, zap.String("email", u.Email))
+
+		if err := a.user.Save(usr); err != nil {
+			zf = append(zf, zap.Error(err))
+			a.logger.Error("failed to save info", zf...)
 			return err
 		}
+		a.logger.Info("user info registered", zf...)
 		return nil
 	}
 
