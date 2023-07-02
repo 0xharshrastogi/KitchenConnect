@@ -54,6 +54,9 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	return u, nil
 }
 
+// IsEmailExist checks if a user with the specified email exists in the repository.
+// It returns a boolean value indicating whether the user exists or not.
+// If an error occurs during the check, the error is returned.
 func (r *UserRepository) IsEmailExist(email string) (bool, error) {
 	u, err := r.FindByEmail(email)
 	return u != nil, err
