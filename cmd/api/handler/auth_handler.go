@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/common/interfaces"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/db/models"
+	"github.com/stroiman/go-automapper"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 )
@@ -57,20 +58,9 @@ func (a *AuthHandler) RegisterHandler() fiber.Handler {
 		if err := a.validate.Struct(&u); err != nil {
 			return &fiber.Error{Code: http.StatusBadRequest, Message: err.Error()}
 		}
-		err := a.user.Save(&models.User{
-			FirstName:    u.FirstName,
-			LastName:     u.LastName,
-			Email:        u.Email,
-			Password:     u.Password,
-			PasswordSalt: u.Password + u.FirstName,
-			Address: &models.Address{
-				City:        u.Address.City,
-				Street:      u.Address.Street,
-				State:       u.Address.State,
-				CountryCode: "IN",
-				ZipCode:     "102101",
-			},
-		})
+		usr := &models.User{}
+		automapper.MapLoose(u, usr)
+		err := a.user.Save(usr)
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return &fiber.Error{Code: http.StatusNotFound, Message: err.Error()}
