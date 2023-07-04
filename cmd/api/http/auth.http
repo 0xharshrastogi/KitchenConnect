@@ -1,10 +1,13 @@
-GET http://localhost:8000/api/auth/register HTTP/1.1
+@basepath=http://localhost:8000
+@testEmail="vinod@email.com"
+
+GET {{basepath}}/api/auth/register HTTP/1.1
 Content-Type: application/json
 
 {
-    "firstName": "Harsh",
+    "firstName": "Vinod",
     "lastName": "Rastogi",
-    "email": "harsh@email.com",
+    "email": {{testEmail}},
     "password": "password",
     "address": {
         "street": "9th Street",
@@ -13,4 +16,14 @@ Content-Type: application/json
         "countryCode": "IN",
         "zipcode": "102101"
     }
+}
+
+### Login
+
+POST {{basepath}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": {{testEmail}},
+    "password": "password1"
 }

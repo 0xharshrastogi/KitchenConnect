@@ -40,7 +40,7 @@ func NewHttpServer(lc fx.Lifecycle, ah *handler.AuthHandler) *fiber.App {
 
 			auth := api.Group("/auth")
 			{
-				auth.Get("/login", ah.LoginHandler())
+				auth.Post("/login", ah.LoginHandler())
 				auth.Get("/register", ah.RegisterHandler())
 			}
 

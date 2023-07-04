@@ -27,8 +27,47 @@ func NewAuthHandler(l fx.Lifecycle, v *validator.Validate, u interfaces.IUserRep
 	}
 }
 
-func (*AuthHandler) LoginHandler() fiber.Handler {
+func (a *AuthHandler) LoginHandler() fiber.Handler {
+	type credential struct {
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required,gte=6,lte=50"`
+	}
+	var (
+		password = utils.NewPasswordHandler()
+	)
 	return func(c *fiber.Ctx) error {
+		var (
+			cred credential
+			zf   = make([]zap.Field, 0, 5)
+		)
+
+		if err := c.BodyParser(&cred); err != nil {
+			zf = append(zf, zap.Error(err))
+			a.logger.Error("failed to parse json body", zf...)
+			return err
+		}
+
+		if err := a.validate.Struct(&cred); err != nil {
+			zf = append(zf, zap.Error(err))
+			a.logger.Error("validation failed", zf...)
+			return &fiber.Error{Code: http.StatusBadRequest, Message: err.Error()}
+		}
+
+		u, err := a.user.FindByEmail(cred.Email)
+		if err != nil {
+			return err
+		}
+		zf = append(zf, zap.String("email", cred.Email))
+		if u == nil || !password.ValidatePassword(u.Password, cred.Password) {
+			a.logger.Error("user validation failed, either email not exist or invalid password", zf...)
+			return fiber.NewError(http.StatusUnauthorized)
+		}
+
+		if err := c.JSON(fiber.Map{"message": "user login success"}); err != nil {
+			return err
+		}
+
+		a.logger.Info("user logged in successful", zf...)
 		return nil
 	}
 }
