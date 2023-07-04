@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/harshrastogiexe/KitchenConnect/cmd/api/utils"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/common/interfaces"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/db/models"
 	"github.com/stroiman/go-automapper"
@@ -50,7 +51,9 @@ func (a *AuthHandler) RegisterHandler() fiber.Handler {
 			Address   *UserAddress `json:"address" validate:"required"`
 		}
 	)
-
+	var (
+		password = utils.NewPasswordHandler()
+	)
 	return func(c *fiber.Ctx) error {
 		var (
 			u  UserInfo
@@ -72,6 +75,15 @@ func (a *AuthHandler) RegisterHandler() fiber.Handler {
 		usr := &models.User{}
 		automapper.MapLoose(u, usr)
 		zf = append(zf, zap.String("email", u.Email))
+
+		hash, err := password.HashPassword(usr.Password)
+		if err != nil {
+			zf = append(zf, zap.Error(err))
+			a.logger.Error("password hashing failed", zf...)
+			return err
+		}
+
+		usr.Password = hash
 
 		if err := a.user.Save(usr); err != nil {
 			zf = append(zf, zap.Error(err))
