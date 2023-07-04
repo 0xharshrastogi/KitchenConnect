@@ -14,6 +14,6 @@
     }
   ],
   "settings": {
-    "cSpell.words": ["appsetting", "golog", "gorm", "sqlserver"]
+    "cSpell.words": ["appsetting", "automapper", "golog", "gorm", "sqlserver"]
   }
 }
