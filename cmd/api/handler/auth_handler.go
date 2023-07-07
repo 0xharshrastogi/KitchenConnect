@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/harshrastogiexe/KitchenConnect/cmd/api/dto"
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/utils"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/common/interfaces"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/db/models"
@@ -13,17 +17,29 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	ErrInvalidToken = errors.New("invalid jwt token")
+)
+
+var (
+	tokenExpirationTimeInterval = time.Hour
+	JwtCookieName               = "token"
+)
+
 type AuthHandler struct {
-	validate *validator.Validate
-	user     interfaces.IUserRepository
-	logger   *zap.Logger
+	validate      *validator.Validate
+	user          interfaces.IUserRepository
+	logger        *zap.Logger
+	signingMethod jwt.SigningMethod
+	secret        []byte
 }
 
 func NewAuthHandler(l fx.Lifecycle, v *validator.Validate, u interfaces.IUserRepository, logger *zap.Logger) *AuthHandler {
 	return &AuthHandler{
-		validate: v,
-		user:     u,
-		logger:   logger,
+		validate:      v,
+		user:          u,
+		logger:        logger,
+		signingMethod: jwt.SigningMethodHS256,
 	}
 }
 
@@ -63,10 +79,20 @@ func (a *AuthHandler) LoginHandler() fiber.Handler {
 			return fiber.NewError(http.StatusUnauthorized)
 		}
 
-		if err := c.JSON(fiber.Map{"message": "user login success"}); err != nil {
+		t, err := a.makeJwtToken(jwt.MapClaims{
+			"user": map[string]any{
+				"id":    u.ID,
+				"email": u.Email,
+			},
+		})
+
+		if err != nil {
 			return err
 		}
-
+		c.Cookie(createJWTCookie(t))
+		if err := c.JSON(fiber.Map{"token": t, "user": a.convertUserOut(u)}); err != nil {
+			return err
+		}
 		a.logger.Info("user logged in successful", zf...)
 		return nil
 	}
@@ -130,7 +156,64 @@ func (a *AuthHandler) RegisterHandler() fiber.Handler {
 			return err
 		}
 		a.logger.Info("user info registered", zf...)
+		t, err := a.makeJwtTokenFromUser(usr)
+		if err != nil {
+			return err
+		}
+		c.Cookie(createJWTCookie(t))
+		if err := c.JSON(fiber.Map{"token": t, "user": a.convertUserOut(usr)}); err != nil {
+			return err
+		}
 		return nil
 	}
 
+}
+
+func (a *AuthHandler) makeJwtToken(claims jwt.MapClaims) (string, error) {
+	claims["exp"] = time.Now().Add(tokenExpirationTimeInterval)
+	claims["iat"] = time.Now()
+
+	return jwt.NewWithClaims(a.signingMethod, claims).SignedString(a.secret)
+}
+
+func (a *AuthHandler) verifyToken(token string) error {
+	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, ErrInvalidToken
+		}
+		return a.secret, nil
+	})
+
+	if err != nil {
+		return nil
+	}
+	if !t.Valid {
+		return ErrInvalidToken
+	}
+	return nil
+}
+
+func (a *AuthHandler) convertUserOut(u *models.User) *dto.UserOutDTO {
+	uOut := &dto.UserOutDTO{}
+	automapper.MapLoose(u, uOut)
+	return uOut
+}
+
+func (a *AuthHandler) makeJwtTokenFromUser(u *models.User) (string, error) {
+	return a.makeJwtToken(jwt.MapClaims{
+		"user": map[string]interface{}{
+			"id":    u.ID,
+			"email": u.Email,
+		},
+	})
+}
+
+func createJWTCookie(token string) *fiber.Cookie {
+	return &fiber.Cookie{
+		Name:     JwtCookieName,
+		Value:    token,
+		Expires:  time.Now().Add(tokenExpirationTimeInterval),
+		HTTPOnly: true,
+	}
 }
