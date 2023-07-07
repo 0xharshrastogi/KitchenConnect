@@ -99,29 +99,12 @@ func (a *AuthHandler) LoginHandler() fiber.Handler {
 }
 
 func (a *AuthHandler) RegisterHandler() fiber.Handler {
-	type (
-		UserAddress struct {
-			Street      string `json:"street" validate:"required"`
-			City        string `json:"city" validate:"required"`
-			State       string `json:"state" validate:"required"`
-			ZipCode     string `json:"zipCode" validate:"required"`
-			CountryCode string `json:"countryCode" validate:"required"`
-		}
-
-		UserInfo struct {
-			FirstName string       `json:"firstName" validate:"required"`
-			LastName  string       `json:"lastName" validate:"required"`
-			Email     string       `json:"email" validate:"required"`
-			Password  string       `json:"password" validate:"required"`
-			Address   *UserAddress `json:"address" validate:"required"`
-		}
-	)
 	var (
 		password = utils.NewPasswordHandler()
 	)
 	return func(c *fiber.Ctx) error {
 		var (
-			u  UserInfo
+			u  dto.UserInDTO
 			zf = make([]zap.Field, 0, 5)
 		)
 
