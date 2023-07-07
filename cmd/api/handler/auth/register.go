@@ -51,7 +51,7 @@ func (h *AuthHandler) RegisterRouteHandler() fiber.Handler {
 
 		data := fiber.Map{
 			"token": t,
-			"user":  user,
+			"user":  convertTo[dto.UserOutDTO](user),
 		}
 		if err := c.JSON(data); err != nil {
 			return err
