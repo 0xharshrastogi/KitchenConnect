@@ -12,7 +12,7 @@ type UserRepository struct {
 	db *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) interfaces.IUserRepository {
+func NewUserRepository(db *gorm.DB) interfaces.UserRepository {
 	if db == nil {
 		panic("nil instance found")
 	}
@@ -44,7 +44,7 @@ func (r *UserRepository) Save(u *models.User) error {
 // If an error occurs during the query execution, the error is returned.
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	u := &models.User{}
-	q := r.db.Where("email=?", email).Preload("Address").First(u)
+	q := r.db.Where(&models.User{Email: email}).Preload("Address").First(u)
 	if err := q.Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil

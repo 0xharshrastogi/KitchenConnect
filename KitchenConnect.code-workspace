@@ -14,6 +14,14 @@
     }
   ],
   "settings": {
-    "cSpell.words": ["appsetting", "automapper", "golog", "gorm", "sqlserver"]
+    "cSpell.words": [
+      "apierror",
+      "appsetting",
+      "automapper",
+      "gofiber",
+      "golog",
+      "gorm",
+      "sqlserver"
+    ]
   }
 }

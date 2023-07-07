@@ -18,7 +18,7 @@ type ILogger interface {
 	Debug(message string)
 }
 
-type IUserRepository interface {
+type UserRepository interface {
 	// Save saves a user to the repository.
 	// It checks if a user with the same email already exists in the database.
 	// If a user with the same email exists, it returns an error.

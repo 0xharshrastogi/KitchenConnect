@@ -31,7 +31,7 @@ func main() {
 	).Run()
 }
 
-func NewHttpServer(lc fx.Lifecycle, ah *handler.AuthHandler) *fiber.App {
+func NewHttpServer(lc fx.Lifecycle, ah handler.AuthHandler) *fiber.App {
 	app := fiber.New()
 
 	lc.Append(fx.Hook{
@@ -40,8 +40,8 @@ func NewHttpServer(lc fx.Lifecycle, ah *handler.AuthHandler) *fiber.App {
 
 			auth := api.Group("/auth")
 			{
-				auth.Post("/login", ah.LoginHandler())
-				auth.Get("/register", ah.RegisterHandler())
+				auth.Post("/login", ah.LoginRouteHandler())
+				auth.Get("/register", ah.RegisterRouteHandler())
 			}
 
 			go app.Listen(":8000")
