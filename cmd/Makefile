@@ -1,5 +1,5 @@
 DSN:="sqlserver://sa:yourStrong(!)Password@localhost?database=KitchenConnectDB&sslmode=disable"
-MIGRATION_DIR:=api/db/migrations
+MIGRATION_DIR:="api/db/migrations"
 
 run-database:
 	docker compose up database
@@ -23,5 +23,5 @@ migration-fix:
 migration-version:
 	@migrate -path $(MIGRATION_DIR) -database $(DSN) version
 
-create-migration:
-	migrate create -ext sql -dir database/migration/ -seq init_mg
+migration-create:
+	migrate create -ext sql -dir $(MIGRATION_DIR) remove_password_salt_column_from_users
