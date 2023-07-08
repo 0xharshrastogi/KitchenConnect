@@ -11,6 +11,7 @@ import (
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/handler"
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/utils/logger"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/common/repository"
+	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 )
@@ -18,6 +19,10 @@ import (
 const CONNECTION_STRING_KEY string = "KitchenConnectDB"
 
 func main() {
+	err := godotenv.Load("./.env")
+	if err != nil {
+		panic(err)
+	}
 	fx.New(
 		fx.Provide(config.BuildAppSetting("appsetting.json")),
 		fx.Provide(logger.NewZapLogger),

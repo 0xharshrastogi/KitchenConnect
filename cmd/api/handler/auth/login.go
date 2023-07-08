@@ -35,7 +35,7 @@ func (h *AuthHandler) LoginRouteHandler() fiber.Handler {
 			return fiber.NewError(http.StatusUnauthorized, msg)
 		}
 
-		token, err := makeJwtFromUser(user)
+		token, err := h.makeJwtFromUser(user)
 		if err != nil {
 			h.Log.Error(err.Error())
 			return err

@@ -44,7 +44,7 @@ func (h *AuthHandler) RegisterRouteHandler() fiber.Handler {
 
 		h.Log.Info("user info saved", fields...)
 
-		t, err := makeJwtFromUser(user)
+		t, err := h.makeJwtFromUser(user)
 		if err != nil {
 			return err
 		}

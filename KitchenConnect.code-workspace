@@ -18,6 +18,7 @@
       "apierror",
       "appsetting",
       "automapper",
+      "godotenv",
       "gofiber",
       "golog",
       "gorm",

@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/harshrastogiexe/KitchenConnect/cmd/api/helpers"
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/utils"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/common/interfaces"
 	"github.com/harshrastogiexe/KitchenConnect/lib/go/db/models"
@@ -19,10 +20,16 @@ var (
 	signingMethod      = jwt.SigningMethodHS256
 )
 
+type JwtConfig struct {
+	Secret []byte
+	Method jwt.SigningMethod
+}
+
 type AuthHandler struct {
 	Log      *zap.Logger
 	Validate *validator.Validate
 	Users    interfaces.UserRepository
+	Jwt      *JwtConfig
 	utils.PasswordHandler
 }
 
@@ -45,9 +52,8 @@ func (h *AuthHandler) validate(s any, f []zap.Field) error {
 	return nil
 }
 
-func makeJwtFromUser(u *models.User) (string, error) {
-	s := getSecret()
-	return jwt.NewWithClaims(signingMethod, newJwtClaimsFromUser(u)).SignedString(s)
+func (h *AuthHandler) makeJwtFromUser(u *models.User) (string, error) {
+	return jwt.NewWithClaims(h.Jwt.Method, newJwtClaimsFromUser(u)).SignedString(h.Jwt.Secret)
 }
 
 func newJwtClaimsFromUser(u *models.User) jwt.MapClaims {
@@ -60,7 +66,7 @@ func newJwtClaimsFromUser(u *models.User) jwt.MapClaims {
 }
 
 func getSecret() []byte {
-	return []byte("secret")
+	return []byte(helpers.GetJwtSecret())
 }
 
 func newDefaultClaim() jwt.MapClaims {
