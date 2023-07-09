@@ -1,0 +1,13 @@
+.error-boundary-container {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.path-value {
+  background-color: gainsboro;
+  color: maroon;
+  display: inline-block;
+  padding: 0.05rem 0.1rem;
+  border-radius: 0.1rem;
+}
