@@ -28,7 +28,7 @@ func (h *AuthHandler) LoginRouteHandler() fiber.Handler {
 			return err
 		}
 
-		fields = append(fields, zap.String("email", user.Email))
+		fields = append(fields, zap.String("email", cred.Email))
 		if user == nil || !h.ValidatePassword(user.Password, cred.Password) {
 			msg := "invalid credentials, either email not exist or invalid password"
 			h.Log.Error(msg, fields...)
