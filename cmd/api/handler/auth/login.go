@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/harshrastogiexe/KitchenConnect/cmd/api/dto"
@@ -40,7 +41,12 @@ func (h *AuthHandler) LoginRouteHandler() fiber.Handler {
 			h.Log.Error(err.Error())
 			return err
 		}
-
+		c.Cookie(&fiber.Cookie{
+			Name:    "token",
+			Value:   token,
+			Expires: time.Now().Add(jwtExtTimeInterval),
+			Secure:  true,
+		})
 		data := fiber.Map{
 			"token": token,
 			"user":  convertTo[dto.UserOutDTO](user),
