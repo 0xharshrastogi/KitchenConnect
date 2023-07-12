@@ -2,11 +2,13 @@ DSN:="sqlserver://sa:yourStrong(!)Password@localhost?database=KitchenConnectDB&s
 MIGRATION_DIR:="api/db/migrations"
 
 run-database:
-	docker compose up database
+	docker compose up database -d
 
 run-api:
 	cd api \
 	&& go run .
+
+run-app: run-database, run-api
 
 stop:
 	docker compose down -rm
