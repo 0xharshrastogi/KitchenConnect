@@ -1,55 +1,65 @@
-import {
-  Button,
-  Col,
-  Form,
-  Input,
-  Layout,
-  Row,
-  Typography,
-  message,
-} from "antd";
+import { Button, Col, Form, Input, Layout, Row, Typography, message } from "antd";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import * as endpoint from "../../common/endpoints";
 import { ContentType, HttpMethod } from "../../common/enums";
 import { User, UserCredential } from "../../common/shared";
+import { Func } from "../../common/types";
+import { userActions } from "../../reducers";
 import "./Login.scss";
 
-type TLoginResponse = {
+type LoginApiResp = {
   token: string;
   user: User;
 };
 
+type FormSubmitResult<T> = { kind: "error"; message: string } | { kind: "success"; message: string; data: T };
+
+const handleFailedResponse = async (response: Response): Promise<Error> => {
+  switch (response.headers.get("Content-Type")) {
+    case ContentType.TextPlain:
+      return new Error(await response.text());
+  }
+  return new Error("Something went wrong");
+};
+
+const loginFormSubmitHandler: Func<[UserCredential], Promise<FormSubmitResult<LoginApiResp>>> = async (credential: UserCredential) => {
+  const response = await fetch(endpoint.LOGIN, {
+    method: HttpMethod.POST,
+    headers: { "Content-Type": ContentType.Json },
+    body: JSON.stringify(credential),
+  });
+
+  if (!response.ok) {
+    const { message } = await handleFailedResponse(response);
+    return { kind: "error", message };
+  }
+
+  if (response.headers.get("Content-Type")?.includes(ContentType.Json)) {
+    const data = (await response.json()) as LoginApiResp;
+    return { kind: "success", message: `Welcome back, ${data.user.firstName}`, data };
+  }
+  return { kind: "error", message: "something went wrong" };
+};
+
 export const Login = () => {
   const [form] = Form.useForm<UserCredential>();
+  const dispatch = useDispatch();
 
-  const onFormSubmit = async (credential: UserCredential) => {
-    const response = await fetch(endpoint.LOGIN, {
-      method: HttpMethod.POST,
-      headers: {
-        "Content-Type": ContentType.Json,
-      },
-      body: JSON.stringify(credential),
-    });
+  const onFormSubmitHandler = async (formValue: UserCredential) => {
+    dispatch(userActions.reset({ loading: true }));
 
-    if (
-      !response.ok &&
-      response.headers.get("Content-Type")?.includes(ContentType.TextPlain)
-    ) {
-      void message.error("Invalid credentials", 2);
+    const result = await loginFormSubmitHandler(formValue);
+    const { kind, message: text } = result;
+
+    if (kind === "error") {
+      void message.error(text);
       return;
     }
 
-    if (
-      response.ok &&
-      response.headers.get("Content-Type")?.includes(ContentType.Json)
-    ) {
-      const { user } = (await response.json()) as TLoginResponse;
-      void message.success(`Welcome back, ${user.firstName}`, 2);
-    }
-  };
-
-  const onFormSubmitHandler = (formValue: UserCredential) => {
-    void onFormSubmit(formValue);
+    const { data } = result;
+    void message.success(result.message);
+    dispatch(userActions.activate(data.user));
   };
 
   return (
@@ -62,45 +72,24 @@ export const Login = () => {
           <Layout.Content className="content login-mobile-content">
             <div className="content-intro">
               <Typography.Title level={3}>Welcome Back</Typography.Title>
-              <Typography.Text type="secondary">
-                Hello there, sign in to continue
-              </Typography.Text>
+              <Typography.Text type="secondary">Hello there, sign in to continue</Typography.Text>
             </div>
 
             <Form
               autoComplete="off"
               className="form"
               form={form}
-              onFinish={onFormSubmitHandler}
+              onFinish={(value) => void onFormSubmitHandler(value)}
               labelCol={{ span: 8 }}
               wrapperCol={{ span: 16 }}
             >
               <fieldset>
-                <Form.Item
-                  label="Email"
-                  name="email"
-                  rules={[
-                    { required: true, message: "Please input your email!" },
-                  ]}
-                >
-                  <Input
-                    className="form-control"
-                    type="email"
-                    placeholder="Enter your email"
-                  />
+                <Form.Item label="Email" name="email" rules={[{ required: true, message: "Please input your email!" }]}>
+                  <Input className="form-control" type="email" placeholder="Enter your email" />
                 </Form.Item>
 
-                <Form.Item
-                  label="Password"
-                  name="password"
-                  rules={[
-                    { required: true, message: "Please input your password!" },
-                  ]}
-                >
-                  <Input.Password
-                    className="form-control"
-                    placeholder="Enter your password"
-                  />
+                <Form.Item label="Password" name="password" rules={[{ required: true, message: "Please input your password!" }]}>
+                  <Input.Password className="form-control" placeholder="Enter your password" />
                 </Form.Item>
               </fieldset>
 

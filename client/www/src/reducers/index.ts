@@ -1,1 +1,1 @@
-export { reducer as userReducer } from "./user";
+export { actions as userActions, reducer as userReducer } from "./user";

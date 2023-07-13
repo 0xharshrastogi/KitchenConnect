@@ -1,20 +1,27 @@
-import {
-  CreateSliceOptions,
-  PayloadAction,
-  createSlice,
-} from "@reduxjs/toolkit";
-import { User, type Reducer } from "../common/types";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { User } from "../common/types";
 
-const initialState: Reducer.IUserReducer = null;
+type UserReducerState = {
+  loading: boolean;
+  info: User | null;
+};
 
-const option: CreateSliceOptions<Reducer.IUserReducer> = {
+const initialState: UserReducerState = {
+  loading: false,
+  info: null,
+};
+
+export const { reducer, actions } = createSlice({
   name: "user",
   initialState,
   reducers: {
-    setUserInfo: (state, action: PayloadAction<User>) => {
-      console.log(state, action);
+    reset: (state, action: PayloadAction<{ loading: true } | undefined>) => {
+      if (!action.payload) return initialState;
+      return { ...state, loading: action.payload.loading };
+    },
+
+    activate: (state, action: PayloadAction<User>) => {
+      return { ...state, loading: false, user: action.payload };
     },
   },
-};
-
-export const { reducer } = createSlice(option);
+});
