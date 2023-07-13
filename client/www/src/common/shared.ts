@@ -12,3 +12,10 @@ export interface User {
   email: string;
   address: Address;
 }
+
+export interface UserCredential {
+  email: string;
+  password: string;
+}
+
+export interface UserPostProps extends User, UserCredential {}
