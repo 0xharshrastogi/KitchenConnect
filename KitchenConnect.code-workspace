@@ -22,6 +22,7 @@
       "gofiber",
       "golog",
       "gorm",
+      "signup",
       "sqlserver"
     ]
   }

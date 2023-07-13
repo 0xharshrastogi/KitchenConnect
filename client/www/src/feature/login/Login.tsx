@@ -1,66 +1,24 @@
-import { Button, Col, Form, Input, Layout, Row, Typography, message } from "antd";
-import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
-import * as endpoint from "../../common/endpoints";
-import { ContentType, HttpMethod } from "../../common/enums";
+import { Button, Col, Form, Input, Layout, Row, Typography } from "antd";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { authAction } from "../../action/user.action";
 import { User, UserCredential } from "../../common/shared";
-import { Func } from "../../common/types";
-import { userActions } from "../../reducers";
+import { AppDispatch, AppRootState } from "../../store";
 import "./Login.scss";
-
-type LoginApiResp = {
-  token: string;
-  user: User;
-};
-
-type FormSubmitResult<T> = { kind: "error"; message: string } | { kind: "success"; message: string; data: T };
-
-const handleFailedResponse = async (response: Response): Promise<Error> => {
-  switch (response.headers.get("Content-Type")) {
-    case ContentType.TextPlain:
-      return new Error(await response.text());
-  }
-  return new Error("Something went wrong");
-};
-
-const loginFormSubmitHandler: Func<[UserCredential], Promise<FormSubmitResult<LoginApiResp>>> = async (credential: UserCredential) => {
-  const response = await fetch(endpoint.LOGIN, {
-    method: HttpMethod.POST,
-    headers: { "Content-Type": ContentType.Json },
-    body: JSON.stringify(credential),
-  });
-
-  if (!response.ok) {
-    const { message } = await handleFailedResponse(response);
-    return { kind: "error", message };
-  }
-
-  if (response.headers.get("Content-Type")?.includes(ContentType.Json)) {
-    const data = (await response.json()) as LoginApiResp;
-    return { kind: "success", message: `Welcome back, ${data.user.firstName}`, data };
-  }
-  return { kind: "error", message: "something went wrong" };
-};
 
 export const Login = () => {
   const [form] = Form.useForm<UserCredential>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const user = useSelector<AppRootState, User | null>(({ user }) => user.info, shallowEqual);
 
-  const onFormSubmitHandler = async (formValue: UserCredential) => {
-    dispatch(userActions.reset({ loading: true }));
-
-    const result = await loginFormSubmitHandler(formValue);
-    const { kind, message: text } = result;
-
-    if (kind === "error") {
-      void message.error(text);
-      return;
-    }
-
-    const { data } = result;
-    void message.success(result.message);
-    dispatch(userActions.activate(data.user));
+  const onFormSubmitHandler = (formValue: UserCredential) => {
+    void dispatch(authAction.login(formValue));
   };
+
+  // useEffect(() => {
+  //   if (user === null) return;
+  // }, [user, navigate]);
 
   return (
     <Row>

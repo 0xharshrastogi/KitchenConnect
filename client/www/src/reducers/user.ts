@@ -1,4 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { authAction } from "../action/user.action";
 import { User } from "../common/types";
 
 type UserReducerState = {
@@ -23,5 +24,23 @@ export const { reducer, actions } = createSlice({
     activate: (state, action: PayloadAction<User>) => {
       return { ...state, loading: false, user: action.payload };
     },
+  },
+
+  extraReducers: (builder) => {
+    builder.addCase(authAction.login.pending, () => {
+      return { loading: true, info: null };
+    });
+
+    builder.addCase(authAction.login.fulfilled, (state, action) => {
+      state.loading = false;
+      state.info = action.payload.user;
+
+      return state;
+    });
+
+    builder.addCase(authAction.login.rejected, (_, action) => {
+      console.error(action.error.message, action.error);
+      return { loading: false, info: null };
+    });
   },
 });
