@@ -1,24 +1,24 @@
-import { Button, Col, Form, Input, Layout, Row, Typography } from "antd";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { Button, Col, Form, Input, Layout, Row, Typography, message } from "antd";
 import { Link, useNavigate } from "react-router-dom";
-import { authAction } from "../../action/user.action";
-import { User, UserCredential } from "../../common/shared";
-import { AppDispatch, AppRootState } from "../../store";
+import { UserCredential } from "../../common/shared";
+import { routes } from "../../constant/path";
+import { useAuthentication } from "../../hooks";
 import "./Login.scss";
 
 export const Login = () => {
   const [form] = Form.useForm<UserCredential>();
-  const dispatch = useDispatch<AppDispatch>();
+  const auth = useAuthentication();
   const navigate = useNavigate();
-  const user = useSelector<AppRootState, User | null>(({ user }) => user.info, shallowEqual);
 
   const onFormSubmitHandler = (formValue: UserCredential) => {
-    void dispatch(authAction.login(formValue));
+    void auth.login(formValue, {
+      success: () => {
+        void message.success("login success");
+        navigate(routes.BASE);
+      },
+      error: (error) => void message.error(error.message),
+    });
   };
-
-  // useEffect(() => {
-  //   if (user === null) return;
-  // }, [user, navigate]);
 
   return (
     <Row>
@@ -47,7 +47,7 @@ export const Login = () => {
                 </Form.Item>
 
                 <Form.Item label="Password" name="password" rules={[{ required: true, message: "Please input your password!" }]}>
-                  <Input.Password className="form-control" placeholder="Enter your password" />
+                  <Input.Password aria-required="true" autoComplete="true" className="form-control" placeholder="Enter your password" />
                 </Form.Item>
               </fieldset>
 
