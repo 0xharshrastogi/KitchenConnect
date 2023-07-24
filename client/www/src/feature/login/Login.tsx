@@ -1,7 +1,7 @@
 import { Button, Col, Form, Input, Layout, Row, Typography, message } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { UserCredential } from "../../common/shared";
-import { routes } from "../../constant/path";
+import { AppRoute } from "../../constant";
 import { useAuthentication } from "../../hooks";
 import "./Login.scss";
 
@@ -14,7 +14,7 @@ export const Login = () => {
     void auth.login(formValue, {
       success: () => {
         void message.success("login success");
-        navigate(routes.BASE);
+        navigate(AppRoute.BASE);
       },
       error: (error) => void message.error(error.message),
     });

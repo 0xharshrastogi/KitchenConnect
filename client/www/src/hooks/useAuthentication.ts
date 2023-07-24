@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { shallowEqual } from "react-redux";
 import { api } from "../api";
-import { User, UserCredential } from "../common/shared";
-import { ErrorHelper } from "../helpers/ErrorHelper";
+import { type User, type UserCredential } from "../common/shared";
+import { ErrorHelper } from "../helpers";
 import { userAction } from "../store/actions";
 import { useAppDispatch, useAppSelector } from "./useAppSelector";
 
