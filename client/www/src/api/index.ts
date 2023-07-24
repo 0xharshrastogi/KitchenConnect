@@ -7,3 +7,5 @@ interface ApiHandler {
 export const api: ApiHandler = {
   auth: new AuthApiHandler(),
 };
+
+export * from "./endpoints";

@@ -1,6 +1,6 @@
-import * as Endpoint from "../common/endpoints";
 import { ContentType, HttpMethod } from "../common/enums";
 import { User, UserCredential } from "../common/shared";
+import { endpoints } from "./endpoints";
 
 export interface IAuthApiHandler {
   login(credential: UserCredential): Promise<{ token: string; user: User }>;
@@ -8,7 +8,7 @@ export interface IAuthApiHandler {
 
 export class AuthApiHandler implements IAuthApiHandler {
   async login(credential: UserCredential): Promise<{ token: string; user: User }> {
-    const response = await fetch(Endpoint.LOGIN, {
+    const response = await fetch(endpoints.LOGIN, {
       method: HttpMethod.POST,
       headers: { ["Content-Type"]: ContentType.Json },
       body: JSON.stringify(credential),
